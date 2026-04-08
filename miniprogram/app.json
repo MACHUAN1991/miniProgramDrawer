@@ -1,0 +1,15 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/mine/mine",
+    "pages/review/review"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#4A90D9",
+    "navigationBarTitleText": "小马的知识抽屉",
+    "navigationBarTextStyle": "white"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

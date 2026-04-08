@@ -1,0 +1,119 @@
+<view class="container">
+  <view class="top-bar">
+    <view class="login-btn" bindtap="onLoginTap">
+      <image wx:if="{{userInfo && userInfo.avatarUrl}}" class="login-avatar" src="{{userInfo.avatarUrl}}" />
+      <text wx:else class="login-icon">👤</text>
+    </view>
+    <input
+      class="search-input"
+      placeholder="搜索..."
+      value="{{searchKey}}"
+      bindinput="onSearch"
+    />
+    <view class="add-btn" bindtap="showAdd">+ 新增</view>
+  </view>
+
+  <view wx:if="{{loading}}" class="loading-state">
+    <text>加载中...</text>
+  </view>
+
+  <view class="clips-list" wx:else>
+    <view wx:for="{{clips}}" wx:key="_id" class="clip-card">
+      <view class="clip-header">
+        <text class="clip-type">{{item.type === 'text' ? '文字' : '图片'}}</text>
+        <view class="clip-meta">
+          <image wx:if="{{item.creatorAvatar}}" class="creator-avatar" src="{{item.creatorAvatar}}" />
+          <text>{{item.creatorShow}}</text>
+          <text class="meta-dot">·</text>
+          <text>{{item.createdAt}}</text>
+        </view>
+      </view>
+
+      <view wx:if="{{item.type === 'text'}}" class="clip-content" bindtap="toggleExpand" data-index="{{index}}">
+        <text>{{item.content}}</text>
+      </view>
+
+      <view wx:else class="clip-content image-content">
+        <image src="{{item.imageUrl}}" mode="widthFix" bindtap="previewImage" data-url="{{item.imageUrl}}" />
+        <text wx:if="{{item.content}}" class="image-desc">{{item.content}}</text>
+      </view>
+
+      <view class="clip-actions">
+        <text data-id="{{item._id}}" bindtap="deleteClip">删除</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{clips.length === 0}}" class="empty-state">
+    <text>暂无收藏内容</text>
+  </view>
+</view>
+
+<!-- 新增弹窗 -->
+<view wx:if="{{showDialog}}" class="dialog-mask">
+  <view class="dialog">
+    <view class="dialog-header">
+      <text>新增</text>
+      <text class="close-btn" bindtap="closeDialog">×</text>
+    </view>
+    <view class="dialog-creator">
+      <image wx:if="{{userInfo.avatarUrl}}" class="creator-avatar" src="{{userInfo.avatarUrl}}" />
+      <text wx:else class="creator-avatar-placeholder">👤</text>
+      <text class="creator-name">{{userInfo.nickName}}</text>
+    </view>
+    <view class="dialog-body">
+      <textarea
+        class="content-input"
+        placeholder="请输入文字内容"
+        value="{{dialogContent}}"
+        bindinput="onContentInput"
+        cursor-spacing="20"
+      />
+      <view class="image-upload" bindtap="chooseImage">
+        <image wx:if="{{dialogImageUrl}}" src="{{dialogImageUrl}}" mode="aspectFit" />
+        <text wx:else>+ 添加图片（可选）</text>
+      </view>
+    </view>
+    <view class="dialog-footer">
+      <button class="btn-cancel" bindtap="closeDialog">取消</button>
+      <button class="btn-save" bindtap="saveClip">保存</button>
+    </view>
+  </view>
+</view>
+
+<!-- 密码弹窗 -->
+<view wx:if="{{showPwd}}" class="pwd-mask">
+  <view class="pwd-box">
+    <view class="pwd-title">请输入密码</view>
+    <input class="pwd-input" type="text" password value="{{pwdVal}}" bindinput="onPwdInput" />
+    <view class="pwd-btns">
+      <text class="pwd-btn" bindtap="closePwd">取消</text>
+      <text class="pwd-btn confirm" bindtap="submitPwd">确认</text>
+    </view>
+  </view>
+</view>
+
+<!-- 登录弹窗 -->
+<view wx:if="{{showLogin}}" class="login-dialog-mask">
+  <view class="login-dialog">
+    <view class="login-dialog-header">设置头像和昵称</view>
+    <view class="login-dialog-body">
+      <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+        <image wx:if="{{loginAvatar}}" class="avatar-img" src="{{loginAvatar}}" />
+        <text wx:else class="avatar-placeholder">👤</text>
+      </button>
+      <input
+        type="nickname"
+        class="login-nickname"
+        placeholder="点击获取微信昵称"
+        value="{{loginNickname}}"
+        bindinput="onLoginNickname"
+        bindblur="onLoginNickname"
+      />
+    </view>
+    <view class="login-dialog-footer">
+      <text class="login-btn cancel" bindtap="closeLogin">取消</text>
+      <text class="login-btn confirm" bindtap="confirmLogin">确认</text>
+    </view>
+  </view>
+</view>

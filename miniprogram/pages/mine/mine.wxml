@@ -1,0 +1,147 @@
+<view class="container">
+  <!-- 用户信息 -->
+  <view class="user-section card">
+    <view class="user-info" wx:if="{{userInfo}}">
+      <image class="avatar" src="{{userInfo.avatarUrl}}" />
+      <text class="nickname">{{userInfo.nickName}}</text>
+      <text class="logout-btn" bindtap="logout">退出</text>
+    </view>
+    <view class="user-info" wx:else bindtap="showLogin">
+      <view class="avatar placeholder">
+        <text>+</text>
+      </view>
+      <text class="nickname">点击登录</text>
+    </view>
+  </view>
+
+  <!-- 统计数据 -->
+  <view class="stats-section">
+    <view class="stat-card card">
+      <text class="stat-value">{{totalClips}}</text>
+      <text class="stat-label">收藏总数</text>
+    </view>
+    <view class="stat-card card">
+      <text class="stat-value">{{totalTopics}}</text>
+      <text class="stat-label">主题数</text>
+    </view>
+  </view>
+
+  <!-- 回顾功能 -->
+  <view class="section card" bindtap="goToReview">
+    <view class="section-item">
+      <image class="item-icon" src="/assets/review.png" />
+      <text class="item-text">开始回顾</text>
+      <text class="arrow">›</text>
+    </view>
+  </view>
+
+  <!-- 回顾频率设置 -->
+  <view class="section card">
+    <text class="section-title">回顾提醒</text>
+    <view class="frequency-options">
+      <view
+        class="freq-option {{reviewFrequency === 'every_day' ? 'active' : ''}}"
+        bindtap="setReviewFrequency"
+        data-freq="every_day"
+      >
+        每天
+      </view>
+      <view
+        class="freq-option {{reviewFrequency === 'every_3_days' ? 'active' : ''}}"
+        bindtap="setReviewFrequency"
+        data-freq="every_3_days"
+      >
+        每3天
+      </view>
+      <view
+        class="freq-option {{reviewFrequency === 'every_week' ? 'active' : ''}}"
+        bindtap="setReviewFrequency"
+        data-freq="every_week"
+      >
+        每周
+      </view>
+    </view>
+    <text class="section-tip">设置后将通过订阅消息提醒你回顾</text>
+  </view>
+
+  <!-- 其他设置 -->
+  <view class="section card">
+    <view class="section-item" bindtap="manageTopics">
+      <image class="item-icon" src="/assets/topic.png" />
+      <text class="item-text">管理主题</text>
+      <text class="arrow">›</text>
+    </view>
+    <view class="section-item" bindtap="requestNotification">
+      <image class="item-icon" src="/assets/notify.png" />
+      <text class="item-text">通知设置</text>
+      <text class="arrow">›</text>
+    </view>
+    <view class="section-item" bindtap="showAbout">
+      <image class="item-icon" src="/assets/about.png" />
+      <text class="item-text">关于</text>
+      <text class="arrow">›</text>
+    </view>
+  </view>
+</view>
+
+<!-- 主题管理弹窗 -->
+<view wx:if="{{showTopicManager}}" class="picker-mask" bindtap="closeTopicManager">
+  <view class="picker-content" catchtap="stopPropagation">
+    <view class="picker-header">
+      <text>管理主题</text>
+      <text class="close-btn" bindtap="closeTopicManager">完成</text>
+    </view>
+    <scroll-view class="picker-list" scroll-y>
+      <view
+        wx:for="{{allTopics}}"
+        wx:key="_id"
+        class="picker-item topic-item"
+      >
+        <view class="topic-info">
+          <view class="topic-dot" style="background: {{item.color}}"></view>
+          <text>{{item.name}}</text>
+          <text class="topic-count">{{item.clipCount || 0}} 条</text>
+        </view>
+        <text class="delete-btn" bindtap="deleteTopic" data-id="{{item._id}}">删除</text>
+      </view>
+      <view wx:if="{{allTopics.length === 0}}" class="empty-tip">暂无主题</view>
+    </scroll-view>
+  </view>
+</view>
+
+<!-- 登录弹窗 -->
+<view wx:if="{{showLoginDialog}}" class="login-mask" bindtap="closeLoginDialog">
+  <view class="login-dialog" catchtap="stopPropagation">
+    <view class="login-title">设置头像和昵称</view>
+
+    <!-- 头像选择：用户主动授权 -->
+    <view class="login-avatar">
+      <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+        <image wx:if="{{tempAvatarUrl}}" src="{{tempAvatarUrl}}" class="avatar-preview" />
+        <view wx:else class="avatar-placeholder">
+          <text class="icon">👤</text>
+          <text class="hint">点击获取微信头像</text>
+        </view>
+      </button>
+    </view>
+
+    <!-- 昵称输入：点击自动弹出微信昵称选项 -->
+    <view class="login-nickname">
+      <view class="input-label">昵称</view>
+      <input
+        type="nickname"
+        class="nickname-input"
+        placeholder="点击填入微信昵称"
+        placeholder-class="nickname-placeholder"
+        value="{{tempNickName}}"
+        bindinput="onInputNickName"
+        bindblur="onInputNickName"
+      />
+    </view>
+
+    <view class="login-btns">
+      <text class="login-btn cancel" bindtap="closeLoginDialog">取消</text>
+      <text class="login-btn confirm" bindtap="confirmLogin">确认</text>
+    </view>
+  </view>
+</view>

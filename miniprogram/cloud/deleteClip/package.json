@@ -1,0 +1,9 @@
+{
+  "name": "deleteClip",
+  "version": "1.0.0",
+  "description": "删除收藏云函数（管理员权限）",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}
