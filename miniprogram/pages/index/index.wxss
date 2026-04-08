@@ -11,6 +11,28 @@
   margin-bottom: 20rpx;
 }
 
+.topic-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-bottom: 20rpx;
+}
+
+.topic-tag {
+  padding: 12rpx 28rpx;
+  border-radius: 32rpx;
+  font-size: 26rpx;
+  color: #666;
+  background: #fff;
+  border: 2rpx solid #ddd;
+}
+
+.topic-tag.active {
+  color: #fff;
+  background: #4A90D9;
+  border-color: #4A90D9;
+}
+
 .search-input {
   flex: 1;
   height: 80rpx;

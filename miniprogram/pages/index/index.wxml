@@ -13,6 +13,31 @@
     <view class="add-btn" bindtap="showAdd">+ 新增</view>
   </view>
 
+  <!-- 分类筛选栏 -->
+  <view class="topic-filter">
+    <view
+      class="topic-tag {{selectedType === '' ? 'active' : ''}}"
+      bindtap="selectType"
+      data-type=""
+    >
+      全部 {{countAll}}
+    </view>
+    <view
+      class="topic-tag {{selectedType === 'text' ? 'active' : ''}}"
+      bindtap="selectType"
+      data-type="text"
+    >
+      文字 {{countText}}
+    </view>
+    <view
+      class="topic-tag {{selectedType === 'image' ? 'active' : ''}}"
+      bindtap="selectType"
+      data-type="image"
+    >
+      图片 {{countImage}}
+    </view>
+  </view>
+
   <view wx:if="{{loading}}" class="loading-state">
     <text>加载中...</text>
   </view>

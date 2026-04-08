@@ -15,6 +15,11 @@ Page({
     pwdVal: '',
     pwdCallback: null,
     userInfo: null,
+    // 分类筛选
+    selectedType: '', // '' | 'text' | 'image'
+    countAll: 0,
+    countText: 0,
+    countImage: 0,
   },
 
   onLoad() {
@@ -30,6 +35,13 @@ Page({
     if (userInfo) {
       this.setData({ userInfo });
     }
+    this.loadData();
+  },
+
+  selectType(e) {
+    const type = e.currentTarget.dataset.type;
+    this.setData({ selectedType: type });
+    this.loadData();
   },
 
   onLoginTap() {
@@ -114,13 +126,21 @@ Page({
     this.setData({ loading: true });
     try {
       const db = wx.cloud.database();
+      const { selectedType } = this.data;
+
       const res = await db.collection('clips')
         .orderBy('createdAt', 'desc')
         .limit(200)
         .get();
 
+      // 按类型筛选
+      let clipsData = res.data;
+      if (selectedType) {
+        clipsData = res.data.filter(clip => clip.type === selectedType);
+      }
+
       // 批量获取图片临时链接
-      const cloudFileIds = res.data
+      const cloudFileIds = clipsData
         .filter(c => c.imageUrl && c.imageUrl.startsWith('cloud://'))
         .map(c => c.imageUrl);
 
@@ -138,7 +158,7 @@ Page({
         }
       }
 
-      const clips = res.data.map(clip => {
+      const clips = clipsData.map(clip => {
         let imageUrl = clip.imageUrl || '';
         if (imageUrl && tempUrlMap[imageUrl]) {
           imageUrl = tempUrlMap[imageUrl];
@@ -156,7 +176,19 @@ Page({
         };
       });
 
-      this.setData({ clips: clips, allClips: clips, loading: false });
+      // 统计各类型数量
+      const countAll = res.data.length;
+      const countText = res.data.filter(c => c.type === 'text').length;
+      const countImage = res.data.filter(c => c.type === 'image').length;
+
+      this.setData({
+        clips,
+        allClips: clips,
+        countAll,
+        countText,
+        countImage,
+        loading: false
+      });
     } catch (err) {
       console.error('加载失败', err);
       this.setData({ loading: false });
