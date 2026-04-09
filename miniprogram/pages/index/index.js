@@ -348,8 +348,8 @@ Page({
   async saveClip() {
     const { dialogContent, dialogCloudId, userInfo } = this.data;
 
-    if (!dialogContent.trim()) {
-      wx.showToast({ title: '请输入文字', icon: 'none' });
+    if (!dialogContent.trim() && !dialogCloudId) {
+      wx.showToast({ title: '请输入文字或添加图片', icon: 'none' });
       return;
     }
 
