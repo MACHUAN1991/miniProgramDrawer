@@ -1,8 +1,6 @@
 {
   "pages": [
-    "pages/index/index",
-    "pages/mine/mine",
-    "pages/review/review"
+    "pages/index/index"
   ],
   "window": {
     "navigationBarBackgroundColor": "#4A90D9",
