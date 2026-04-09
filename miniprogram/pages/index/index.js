@@ -163,10 +163,8 @@ Page({
         if (imageUrl && tempUrlMap[imageUrl]) {
           imageUrl = tempUrlMap[imageUrl];
         }
-        const userInfo = this.data.userInfo;
-        const creatorShow = userInfo && userInfo.nickName
-          ? userInfo.nickName
-          : (clip.creatorName || (clip._openid ? '微信用户' + String(clip._openid).slice(-6) : '微信用户'));
+        const creatorShow = clip.creatorName
+          || (clip._openid ? '微信用户' + String(clip._openid).slice(-6) : '微信用户');
         return {
           ...clip,
           imageUrl,
@@ -346,12 +344,33 @@ Page({
       wx.showToast({ title: '请先登录', icon: 'none' });
       return;
     }
+
     const id = e.currentTarget.dataset.id;
-    this.setData({
-      showPwd: true,
-      pwdVal: '',
-      pwdCallback: () => this.doDelete(id),
-    });
+    const clip = this.data.clips.find(c => c._id === id);
+    if (!clip) return;
+
+    // 检查是否是创建者本人
+    const isCreator = clip.creatorName === userInfo.nickName;
+
+    if (isCreator) {
+      // 创建者本人，弹确认框
+      wx.showModal({
+        title: '确认删除',
+        content: '确定要删除这条内容吗？',
+        success: (res) => {
+          if (res.confirm) {
+            this.doDelete(id);
+          }
+        }
+      });
+    } else {
+      // 非创建者，需要输入密码
+      this.setData({
+        showPwd: true,
+        pwdVal: '',
+        pwdCallback: () => this.doDelete(id),
+      });
+    }
   },
 
   onPwdInput(e) {
