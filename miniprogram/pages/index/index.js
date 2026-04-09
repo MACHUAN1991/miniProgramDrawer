@@ -23,19 +23,34 @@ Page({
   },
 
   onLoad() {
-    const userInfo = wx.getStorageSync('userInfo');
-    if (userInfo) {
-      this.setData({ userInfo });
-    }
+    this.initUserInfo();
     this.loadData();
   },
 
   onShow() {
+    this.initUserInfo();
+    this.loadData();
+  },
+
+  // 初始化用户信息，转换头像URL
+  initUserInfo() {
     const userInfo = wx.getStorageSync('userInfo');
-    if (userInfo) {
+    if (!userInfo) return;
+
+    // 如果头像URL是云存储地址，需要转换
+    if (userInfo.avatarUrl && userInfo.avatarUrl.startsWith('cloud://')) {
+      wx.cloud.getTempFileURL({
+        fileList: [userInfo.avatarUrl]
+      }).then(res => {
+        if (res.fileList && res.fileList[0] && res.fileList[0].tempFileURL) {
+          userInfo.avatarUrl = res.fileList[0].tempFileURL;
+          wx.setStorageSync('userInfo', userInfo);
+          this.setData({ userInfo });
+        }
+      }).catch(() => {});
+    } else {
       this.setData({ userInfo });
     }
-    this.loadData();
   },
 
   selectType(e) {
@@ -100,10 +115,34 @@ Page({
       wx.showToast({ title: '请输入昵称', icon: 'none' });
       return;
     }
-    const userInfo = { avatarUrl: loginAvatar, nickName: nickName.trim() };
-    wx.setStorageSync('userInfo', userInfo);
-    this.setData({ userInfo, showLogin: false });
-    wx.showToast({ title: '登录成功' });
+
+    // 本地临时路径不能用于跨用户访问，必须上传到云存储
+    if (loginAvatar.startsWith('wxfile://')) {
+      wx.showLoading({ title: '上传头像...' });
+      wx.cloud.uploadFile({
+        cloudPath: `avatars/${Date.now()}.jpg`,
+        filePath: loginAvatar,
+      }).then(res => {
+        const avatarCloudId = res.fileID;
+        const userInfo = {
+          avatarUrl: avatarCloudId,
+          nickName: nickName.trim()
+        };
+        wx.setStorageSync('userInfo', userInfo);
+        this.setData({ userInfo, showLogin: false });
+        wx.hideLoading();
+        wx.showToast({ title: '登录成功' });
+      }).catch(err => {
+        wx.hideLoading();
+        wx.showToast({ title: '头像上传失败，请重试', icon: 'none' });
+      });
+    } else {
+      // 非本地路径（如已是云存储ID），直接使用
+      const userInfo = { avatarUrl: loginAvatar, nickName: nickName.trim() };
+      wx.setStorageSync('userInfo', userInfo);
+      this.setData({ userInfo, showLogin: false });
+      wx.showToast({ title: '登录成功' });
+    }
   },
 
   onLogout() {
@@ -139,15 +178,22 @@ Page({
         clipsData = res.data.filter(clip => clip.type === selectedType);
       }
 
-      // 批量获取图片临时链接
-      const cloudFileIds = clipsData
-        .filter(c => c.imageUrl && c.imageUrl.startsWith('cloud://'))
-        .map(c => c.imageUrl);
+      // 收集所有需要转换的云存储ID（内容图片 + 头像）
+      const allCloudIds = [];
+      clipsData.forEach(c => {
+        if (c.imageUrl && c.imageUrl.startsWith('cloud://')) {
+          allCloudIds.push(c.imageUrl);
+        }
+        if (c.creatorAvatar && c.creatorAvatar.startsWith('cloud://')) {
+          allCloudIds.push(c.creatorAvatar);
+        }
+      });
 
+      // 批量获取临时链接
       const tempUrlMap = {};
-      if (cloudFileIds.length > 0) {
+      if (allCloudIds.length > 0) {
         try {
-          const tempRes = await wx.cloud.getTempFileURL({ fileList: cloudFileIds });
+          const tempRes = await wx.cloud.getTempFileURL({ fileList: [...new Set(allCloudIds)] });
           if (tempRes.fileList) {
             tempRes.fileList.forEach(f => {
               if (f.tempFileURL) tempUrlMap[f.fileID] = f.tempFileURL;
@@ -163,11 +209,17 @@ Page({
         if (imageUrl && tempUrlMap[imageUrl]) {
           imageUrl = tempUrlMap[imageUrl];
         }
+        // 转换头像URL
+        let creatorAvatar = clip.creatorAvatar || '';
+        if (creatorAvatar && tempUrlMap[creatorAvatar]) {
+          creatorAvatar = tempUrlMap[creatorAvatar];
+        }
         const creatorShow = clip.creatorName
           || (clip._openid ? '微信用户' + String(clip._openid).slice(-6) : '微信用户');
         return {
           ...clip,
           imageUrl,
+          creatorAvatar,
           createdAt: this.formatDate(clip.createdAt),
           creator: clip.creatorName || '微信用户',
           creatorShow,
