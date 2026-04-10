@@ -228,8 +228,25 @@ Page({
 
   async loadData() {
     this.setData({ loading: true, page: 0, clips: [], hasMore: true });
+
+    // 先获取总数
+    await this.loadCounts();
+
     const { data } = await this.fetchClips();
     this.processAndSetData(data, true);
+  },
+
+  async loadCounts() {
+    const db = wx.cloud.database();
+    const allRes = await db.collection('clips').count();
+    const textRes = await db.collection('clips').where({ type: 'text' }).count();
+    const imageRes = await db.collection('clips').where({ type: 'image' }).count();
+
+    this.setData({
+      countAll: allRes.total,
+      countText: textRes.total,
+      countImage: imageRes.total,
+    });
   },
 
   async loadMore() {
