@@ -25,6 +25,8 @@ Page({
     dialogContentFocused: false,
     pwdFocused: false,
     loginNicknameFocused: false,
+    // 删除动画
+    deletingId: '',
   },
 
   onLoad() {
@@ -115,6 +117,10 @@ Page({
 
   onSearchBlur() {
     this.setData({ searchFocused: false });
+  },
+
+  clearSearch() {
+    this.setData({ searchKey: '', clips: this.data.allClips });
   },
 
   onContentFocus() {
@@ -444,7 +450,8 @@ Page({
         content: '确定要删除这条内容吗？',
         success: (res) => {
           if (res.confirm) {
-            this.doDelete(id);
+            this.setData({ deletingId: id });
+            setTimeout(() => this.doDelete(id), 300);
           }
         }
       });
@@ -453,7 +460,10 @@ Page({
       this.setData({
         showPwd: true,
         pwdVal: '',
-        pwdCallback: () => this.doDelete(id),
+        pwdCallback: () => {
+          this.setData({ deletingId: id });
+          setTimeout(() => this.doDelete(id), 300);
+        },
       });
     }
   },
@@ -478,12 +488,11 @@ Page({
   },
 
   doDelete(id) {
-    wx.showLoading({ title: '删除中...' });
     wx.cloud.callFunction({
       name: 'deleteClip',
       data: { clipId: id }
     }).then(res => {
-      wx.hideLoading();
+      this.setData({ deletingId: '' });
       if (res.result && res.result.success) {
         wx.showToast({ title: '已删除' });
         this.loadData();
@@ -491,7 +500,7 @@ Page({
         wx.showToast({ title: '删除失败', icon: 'none' });
       }
     }).catch(err => {
-      wx.hideLoading();
+      this.setData({ deletingId: '' });
       wx.showToast({ title: '删除失败', icon: 'none' });
     });
   },

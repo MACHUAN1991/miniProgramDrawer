@@ -4,14 +4,17 @@
       <image wx:if="{{userInfo && userInfo.avatarUrl}}" class="login-avatar" src="{{userInfo.avatarUrl}}" />
       <text wx:else class="login-icon">👤</text>
     </view>
-    <input
-      class="search-input {{searchFocused ? 'focused' : ''}}"
-      placeholder="搜索..."
-      value="{{searchKey}}"
-      bindinput="onSearch"
-      bindfocus="onSearchFocus"
-      bindblur="onSearchBlur"
-    />
+    <view class="search-wrapper">
+      <input
+        class="search-input {{searchFocused ? 'focused' : ''}}"
+        placeholder="搜索..."
+        value="{{searchKey}}"
+        bindinput="onSearch"
+        bindfocus="onSearchFocus"
+        bindblur="onSearchBlur"
+      />
+      <text wx:if="{{searchKey}}" class="search-clear" bindtap="clearSearch">×</text>
+    </view>
     <view class="add-btn" bindtap="showAdd">+ 新增</view>
   </view>
 
@@ -41,11 +44,12 @@
   </view>
 
   <view wx:if="{{loading}}" class="loading-state">
+    <view class="spinner"></view>
     <text>加载中...</text>
   </view>
 
   <view class="clips-list" wx:else>
-    <view wx:for="{{clips}}" wx:key="_id" class="clip-card">
+    <view wx:for="{{clips}}" wx:key="_id" class="clip-card {{deletingId === item._id ? 'deleting' : ''}}" wx:if="{{deletingId !== item._id}}">
       <view class="clip-header">
         <text class="clip-type">{{item.type === 'text' ? '文字' : '图片'}}</text>
         <view class="clip-meta">
