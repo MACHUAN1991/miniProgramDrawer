@@ -476,10 +476,12 @@ Page({
 
     this.setData({ deletingId: pendingDeleteId });
     setTimeout(() => {
+      wx.showLoading({ title: '删除中...', mask: true });
       wx.cloud.callFunction({
         name: 'deleteClip',
         data: { clipId: pendingDeleteId, password: pwdVal }
       }).then(res => {
+        wx.hideLoading();
         this.setData({ deletingId: '' });
         if (res.result && res.result.success) {
           wx.showToast({ title: '已删除' });
@@ -488,6 +490,7 @@ Page({
           wx.showToast({ title: res.result?.error || '删除失败', icon: 'none' });
         }
       }).catch(err => {
+        wx.hideLoading();
         this.setData({ deletingId: '' });
         wx.showToast({ title: '删除失败', icon: 'none' });
       });
@@ -495,10 +498,12 @@ Page({
   },
 
   doDelete(id) {
+    wx.showLoading({ title: '删除中...', mask: true });
     wx.cloud.callFunction({
       name: 'deleteClip',
       data: { clipId: id }
     }).then(res => {
+      wx.hideLoading();
       this.setData({ deletingId: '' });
       if (res.result && res.result.success) {
         wx.showToast({ title: '已删除' });
@@ -507,6 +512,7 @@ Page({
         wx.showToast({ title: '删除失败', icon: 'none' });
       }
     }).catch(err => {
+      wx.hideLoading();
       this.setData({ deletingId: '' });
       wx.showToast({ title: '删除失败', icon: 'none' });
     });
