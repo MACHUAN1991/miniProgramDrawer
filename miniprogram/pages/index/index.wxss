@@ -42,6 +42,12 @@
   font-size: 28rpx;
   line-height: 80rpx;
   box-sizing: border-box;
+  border: 2rpx solid transparent;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.search-input.focused {
+  border-color: #4A90D9;
+  box-shadow: 0 0 0 4rpx rgba(74, 144, 217, 0.2);
 }
 
 .action-btns {
@@ -257,6 +263,12 @@
   border-radius: 12rpx;
   font-size: 28rpx;
   box-sizing: border-box;
+  border: 2rpx solid transparent;
+  transition: border-color 0.2s, background 0.2s;
+}
+.content-input.focused {
+  border-color: #4A90D9;
+  background: #fff;
 }
 
 .image-upload {
@@ -336,6 +348,12 @@
   text-align: center;
   font-size: 40rpx;
   letter-spacing: 8rpx;
+  border: 2rpx solid transparent;
+  transition: border-color 0.2s, background 0.2s;
+}
+.pwd-input.focused {
+  border-color: #4A90D9;
+  background: #fff;
 }
 
 .pwd-btns {
@@ -468,6 +486,12 @@
   text-align: center;
   box-sizing: border-box;
   line-height: 88rpx;
+  border: 2rpx solid transparent;
+  transition: border-color 0.2s, background 0.2s;
+}
+.login-nickname.focused {
+  border-color: #4A90D9;
+  background: #fff;
 }
 
 .login-dialog-footer {

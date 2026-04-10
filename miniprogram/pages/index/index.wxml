@@ -5,10 +5,12 @@
       <text wx:else class="login-icon">👤</text>
     </view>
     <input
-      class="search-input"
+      class="search-input {{searchFocused ? 'focused' : ''}}"
       placeholder="搜索..."
       value="{{searchKey}}"
       bindinput="onSearch"
+      bindfocus="onSearchFocus"
+      bindblur="onSearchBlur"
     />
     <view class="add-btn" bindtap="showAdd">+ 新增</view>
   </view>
@@ -88,10 +90,12 @@
     </view>
     <view class="dialog-body">
       <textarea
-        class="content-input"
+        class="content-input {{dialogContentFocused ? 'focused' : ''}}"
         placeholder="请输入文字内容"
         value="{{dialogContent}}"
         bindinput="onContentInput"
+        bindfocus="onContentFocus"
+        bindblur="onContentBlur"
         cursor-spacing="20"
       />
       <view class="image-upload" bindtap="chooseImage">
@@ -110,7 +114,7 @@
 <view wx:if="{{showPwd}}" class="pwd-mask">
   <view class="pwd-box">
     <view class="pwd-title">请输入密码</view>
-    <input class="pwd-input" type="text" password value="{{pwdVal}}" bindinput="onPwdInput" />
+    <input class="pwd-input {{pwdFocused ? 'focused' : ''}}" type="text" password value="{{pwdVal}}" bindinput="onPwdInput" bindfocus="onPwdFocus" bindblur="onPwdBlur" />
     <view class="pwd-btns">
       <text class="pwd-btn" bindtap="closePwd">取消</text>
       <text class="pwd-btn confirm" bindtap="submitPwd">确认</text>
@@ -129,11 +133,12 @@
       </button>
       <input
         type="nickname"
-        class="login-nickname"
+        class="login-nickname {{loginNicknameFocused ? 'focused' : ''}}"
         placeholder="点击获取微信昵称"
         value="{{loginNickname}}"
         bindinput="onLoginNickname"
         bindblur="onLoginNickname"
+        bindfocus="onLoginNicknameFocus"
       />
     </view>
     <view class="login-dialog-footer">

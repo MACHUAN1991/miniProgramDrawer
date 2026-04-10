@@ -20,6 +20,11 @@ Page({
     countAll: 0,
     countText: 0,
     countImage: 0,
+    // focus 状态
+    searchFocused: false,
+    dialogContentFocused: false,
+    pwdFocused: false,
+    loginNicknameFocused: false,
   },
 
   onLoad() {
@@ -102,6 +107,34 @@ Page({
 
   onLoginNickname(e) {
     this._loginNickname = e.detail.value;
+  },
+
+  onSearchFocus() {
+    this.setData({ searchFocused: true });
+  },
+
+  onSearchBlur() {
+    this.setData({ searchFocused: false });
+  },
+
+  onContentFocus() {
+    this.setData({ dialogContentFocused: true });
+  },
+
+  onContentBlur() {
+    this.setData({ dialogContentFocused: false });
+  },
+
+  onPwdFocus() {
+    this.setData({ pwdFocused: true });
+  },
+
+  onPwdBlur() {
+    this.setData({ pwdFocused: false });
+  },
+
+  onLoginNicknameFocus() {
+    this.setData({ loginNicknameFocused: true });
   },
 
   confirmLogin() {
