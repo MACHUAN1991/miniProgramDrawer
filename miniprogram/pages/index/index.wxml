@@ -43,6 +43,20 @@
     </view>
   </view>
 
+  <!-- 每日推荐 -->
+  <view wx:if="{{dailyRecommend && !loading && !searchKey}}" class="daily-recommend" bindtap="onRecommendTap">
+    <view class="daily-header">
+      <text class="daily-title">📌 今日推荐</text>
+    </view>
+    <view class="daily-content">
+      <text wx:if="{{dailyRecommend.type === 'text'}}" class="daily-text">{{dailyRecommend.content}}</text>
+      <image wx:else class="daily-image" src="{{dailyRecommend.imageUrl}}" mode="aspectFill" />
+    </view>
+    <view class="daily-footer">
+      <text class="daily-meta">{{dailyRecommend.creatorShow}} · {{dailyRecommend.createdAt}}</text>
+    </view>
+  </view>
+
   <view wx:if="{{loading}}" class="loading-state">
     <view class="spinner"></view>
     <text>加载中...</text>

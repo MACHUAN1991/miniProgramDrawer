@@ -34,6 +34,8 @@ Page({
     loadingMore: false,
     // 返回顶部
     showBackTop: false,
+    // 每日推荐
+    dailyRecommend: null,
   },
 
   onLoad() {
@@ -216,6 +218,14 @@ Page({
     wx.pageScrollTo({ scrollTop: 0, duration: 300 });
   },
 
+  onRecommendTap() {
+    const { dailyRecommend } = this.data;
+    if (!dailyRecommend) return;
+    if (dailyRecommend.type === 'image' && dailyRecommend.imageUrl) {
+      wx.previewImage({ current: dailyRecommend.imageUrl, urls: [dailyRecommend.imageUrl] });
+    }
+  },
+
   async loadData() {
     this.setData({ loading: true, page: 0, clips: [], hasMore: true });
     const { data } = await this.fetchClips();
@@ -305,6 +315,24 @@ Page({
       loading: false,
       loadingMore: false,
     });
+
+    // 设置每日推荐（重置时更新）
+    if (isReset && clips.length > 0) {
+      this.setDailyRecommend(clips);
+    }
+  },
+
+  setDailyRecommend(clips) {
+    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const storageKey = `dailyRecommend_${today}`;
+
+    // 用日期做种子，保证同一天结果一致
+    const seed = today.replace(/-/g, '') * 1;
+    const index = seed % clips.length;
+
+    const recommend = clips[index];
+    wx.setStorageSync(storageKey, recommend);
+    this.setData({ dailyRecommend: recommend });
   },
 
   onSearch(e) {
