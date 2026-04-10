@@ -6,14 +6,11 @@ const db = cloud.database();
 const ADMIN_PWD = '231109';
 
 exports.main = async (event, context) => {
-  const { clipId, needPwd } = event;
+  const { clipId, password } = event;
 
   if (!clipId) {
     return { success: false, error: '缺少 clipId 参数' };
   }
-
-  // 获取当前用户的 openid
-  const openid = context.userInfo && context.userInfo.openId;
 
   try {
     // 查询该 clip 的创建者
@@ -24,9 +21,11 @@ exports.main = async (event, context) => {
       return { success: false, error: '内容不存在' };
     }
 
-    // 如果需要密码验证（表示不是创建者删除）
-    if (needPwd) {
-      // 密码验证由客户端处理，这里直接执行删除
+    // 如果有密码参数，需要验证
+    if (password) {
+      if (password !== ADMIN_PWD) {
+        return { success: false, error: '密码错误' };
+      }
     }
 
     // 删除文档

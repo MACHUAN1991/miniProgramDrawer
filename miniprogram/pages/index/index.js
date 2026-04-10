@@ -13,7 +13,7 @@ Page({
     dialogCloudId: '',
     showPwd: false,
     pwdVal: '',
-    pwdCallback: null,
+    pendingDeleteId: '',
     userInfo: null,
     // 分类筛选
     selectedType: '', // '' | 'text' | 'image'
@@ -188,10 +188,6 @@ Page({
     wx.removeStorageSync('userInfo');
     this.setData({ userInfo: null });
     wx.showToast({ title: '已退出' });
-  },
-
-  onPullDownRefresh() {
-    this.loadData();
   },
 
   onPullDownRefresh() {
@@ -460,10 +456,7 @@ Page({
       this.setData({
         showPwd: true,
         pwdVal: '',
-        pwdCallback: () => {
-          this.setData({ deletingId: id });
-          setTimeout(() => this.doDelete(id), 300);
-        },
+        pendingDeleteId: id,
       });
     }
   },
@@ -473,18 +466,32 @@ Page({
   },
 
   closePwd() {
-    this.setData({ showPwd: false, pwdVal: '', pwdCallback: null });
+    this.setData({ showPwd: false, pwdVal: '', pendingDeleteId: '' });
   },
 
   submitPwd() {
-    const { pwdVal, pwdCallback } = this.data;
-    if (pwdVal !== '231109') {
-      wx.showToast({ title: '密码错误', icon: 'none' });
-      this.setData({ pwdVal: '' });
-      return;
-    }
+    const { pwdVal, pendingDeleteId } = this.data;
     this.closePwd();
-    if (pwdCallback) pwdCallback();
+    if (!pendingDeleteId) return;
+
+    this.setData({ deletingId: pendingDeleteId });
+    setTimeout(() => {
+      wx.cloud.callFunction({
+        name: 'deleteClip',
+        data: { clipId: pendingDeleteId, password: pwdVal }
+      }).then(res => {
+        this.setData({ deletingId: '' });
+        if (res.result && res.result.success) {
+          wx.showToast({ title: '已删除' });
+          this.loadData();
+        } else {
+          wx.showToast({ title: res.result?.error || '删除失败', icon: 'none' });
+        }
+      }).catch(err => {
+        this.setData({ deletingId: '' });
+        wx.showToast({ title: '删除失败', icon: 'none' });
+      });
+    }, 300);
   },
 
   doDelete(id) {
