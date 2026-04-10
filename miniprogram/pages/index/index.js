@@ -27,6 +27,13 @@ Page({
     loginNicknameFocused: false,
     // 删除动画
     deletingId: '',
+    // 分页
+    page: 0,
+    pageSize: 20,
+    hasMore: true,
+    loadingMore: false,
+    // 返回顶部
+    showBackTop: false,
   },
 
   onLoad() {
@@ -196,88 +203,108 @@ Page({
     });
   },
 
+  onReachBottom() {
+    if (this.data.loadingMore || !this.data.hasMore) return;
+    this.loadMore();
+  },
+
+  onPageScroll(e) {
+    this.setData({ showBackTop: e.scrollTop > 500 });
+  },
+
+  backToTop() {
+    wx.pageScrollTo({ scrollTop: 0, duration: 300 });
+  },
+
   async loadData() {
-    this.setData({ loading: true });
-    try {
-      const db = wx.cloud.database();
-      const { selectedType } = this.data;
+    this.setData({ loading: true, page: 0, clips: [], hasMore: true });
+    const { data } = await this.fetchClips();
+    this.processAndSetData(data, true);
+  },
 
-      const res = await db.collection('clips')
-        .orderBy('createdAt', 'desc')
-        .limit(200)
-        .get();
+  async loadMore() {
+    if (this.data.loadingMore || !this.data.hasMore) return;
+    this.setData({ loadingMore: true });
+    const { data } = await this.fetchClips();
+    this.processAndSetData(data, false);
+  },
 
-      // 按类型筛选
-      let clipsData = res.data;
-      if (selectedType) {
-        clipsData = res.data.filter(clip => clip.type === selectedType);
-      }
+  async fetchClips() {
+    const db = wx.cloud.database();
+    const { page, pageSize, selectedType } = this.data;
+    const skip = page * pageSize;
 
-      // 收集所有需要转换的云存储ID（内容图片 + 头像）
-      const allCloudIds = [];
-      clipsData.forEach(c => {
-        if (c.imageUrl && c.imageUrl.startsWith('cloud://')) {
-          allCloudIds.push(c.imageUrl);
-        }
-        if (c.creatorAvatar && c.creatorAvatar.startsWith('cloud://')) {
-          allCloudIds.push(c.creatorAvatar);
-        }
-      });
+    const res = await db.collection('clips')
+      .orderBy('createdAt', 'desc')
+      .skip(skip)
+      .limit(pageSize)
+      .get();
 
-      // 批量获取临时链接
-      const tempUrlMap = {};
-      if (allCloudIds.length > 0) {
-        try {
-          const tempRes = await wx.cloud.getTempFileURL({ fileList: [...new Set(allCloudIds)] });
-          if (tempRes.fileList) {
-            tempRes.fileList.forEach(f => {
-              if (f.tempFileURL) tempUrlMap[f.fileID] = f.tempFileURL;
-            });
-          }
-        } catch (e) {
-          console.error('获取图片链接失败', e);
-        }
-      }
-
-      const clips = clipsData.map(clip => {
-        let imageUrl = clip.imageUrl || '';
-        if (imageUrl && tempUrlMap[imageUrl]) {
-          imageUrl = tempUrlMap[imageUrl];
-        }
-        // 转换头像URL
-        let creatorAvatar = clip.creatorAvatar || '';
-        if (creatorAvatar && tempUrlMap[creatorAvatar]) {
-          creatorAvatar = tempUrlMap[creatorAvatar];
-        }
-        const creatorShow = clip.creatorName
-          || (clip._openid ? '微信用户' + String(clip._openid).slice(-6) : '微信用户');
-        return {
-          ...clip,
-          imageUrl,
-          creatorAvatar,
-          createdAt: this.formatDate(clip.createdAt),
-          creator: clip.creatorName || '微信用户',
-          creatorShow,
-        };
-      });
-
-      // 统计各类型数量
-      const countAll = res.data.length;
-      const countText = res.data.filter(c => c.type === 'text').length;
-      const countImage = res.data.filter(c => c.type === 'image').length;
-
-      this.setData({
-        clips,
-        allClips: clips,
-        countAll,
-        countText,
-        countImage,
-        loading: false
-      });
-    } catch (err) {
-      console.error('加载失败', err);
-      this.setData({ loading: false });
+    // 按类型筛选
+    let clipsData = res.data;
+    if (selectedType) {
+      clipsData = res.data.filter(clip => clip.type === selectedType);
     }
+
+    return { data: clipsData, total: res.data.length };
+  },
+
+  processAndSetData(clipsData, isReset) {
+    // 收集所有需要转换的云存储ID（内容图片 + 头像）
+    const allCloudIds = [];
+    clipsData.forEach(c => {
+      if (c.imageUrl && c.imageUrl.startsWith('cloud://')) {
+        allCloudIds.push(c.imageUrl);
+      }
+      if (c.creatorAvatar && c.creatorAvatar.startsWith('cloud://')) {
+        allCloudIds.push(c.creatorAvatar);
+      }
+    });
+
+    // 批量获取临时链接
+    const tempUrlMap = {};
+    if (allCloudIds.length > 0) {
+      wx.cloud.getTempFileURL({ fileList: [...new Set(allCloudIds)] }).then(res => {
+        if (res.fileList) {
+          res.fileList.forEach(f => {
+            if (f.tempFileURL) tempUrlMap[f.fileID] = f.tempFileURL;
+          });
+        }
+      }).catch(() => {});
+    }
+
+    const clips = clipsData.map(clip => {
+      let imageUrl = clip.imageUrl || '';
+      if (imageUrl && tempUrlMap[imageUrl]) {
+        imageUrl = tempUrlMap[imageUrl];
+      }
+      let creatorAvatar = clip.creatorAvatar || '';
+      if (creatorAvatar && tempUrlMap[creatorAvatar]) {
+        creatorAvatar = tempUrlMap[creatorAvatar];
+      }
+      const creatorShow = clip.creatorName
+        || (clip._openid ? '微信用户' + String(clip._openid).slice(-6) : '微信用户');
+      return {
+        ...clip,
+        imageUrl,
+        creatorAvatar,
+        createdAt: this.formatDate(clip.createdAt),
+        creator: clip.creatorName || '微信用户',
+        creatorShow,
+      };
+    });
+
+    const newPage = this.data.page + 1;
+    const hasMore = clipsData.length >= this.data.pageSize;
+
+    this.setData({
+      clips: isReset ? clips : [...this.data.clips, ...clips],
+      allClips: isReset ? clips : [...this.data.allClips, ...clips],
+      page: newPage,
+      hasMore,
+      loading: false,
+      loadingMore: false,
+    });
   },
 
   onSearch(e) {

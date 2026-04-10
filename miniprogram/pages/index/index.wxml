@@ -61,7 +61,8 @@
       </view>
 
       <view wx:if="{{item.type === 'text'}}" class="clip-content" bindtap="toggleExpand" data-index="{{index}}">
-        <text>{{item.content}}</text>
+        <text class="{{item.expanded ? '' : 'text-ellipsis'}}" selectable="{{item.expanded}}">{{item.content}}</text>
+        <text wx:if="{{item.content.length > 100}}" class="expand-btn">{{item.expanded ? '收起' : '展开'}}</text>
       </view>
 
       <view wx:else class="clip-content image-content">
@@ -77,6 +78,20 @@
 
   <view wx:if="{{clips.length === 0}}" class="empty-state">
     <text>暂无收藏内容</text>
+  </view>
+
+  <!-- 加载更多 -->
+  <view wx:if="{{loadingMore}}" class="loading-more">
+    <view class="spinner-sm"></view>
+    <text>加载中...</text>
+  </view>
+  <view wx:if="{{!hasMore && clips.length > 0}}" class="no-more">
+    <text>没有更多了</text>
+  </view>
+
+  <!-- 返回顶部 -->
+  <view wx:if="{{showBackTop}}" class="back-top" bindtap="backToTop">
+    <text>↑</text>
   </view>
 </view>
 
