@@ -264,19 +264,18 @@ Page({
     const { page, pageSize, selectedType } = this.data;
     const skip = page * pageSize;
 
-    const res = await db.collection('clips')
+    let query = db.collection('clips');
+    if (selectedType) {
+      query = query.where({ type: selectedType });
+    }
+
+    const res = await query
       .orderBy('createdAt', 'desc')
       .skip(skip)
       .limit(pageSize)
       .get();
 
-    // 按类型筛选
-    let clipsData = res.data;
-    if (selectedType) {
-      clipsData = res.data.filter(clip => clip.type === selectedType);
-    }
-
-    return { data: clipsData, total: res.data.length };
+    return { data: res.data, total: res.data.length };
   },
 
   processAndSetData(clipsData, isReset) {
