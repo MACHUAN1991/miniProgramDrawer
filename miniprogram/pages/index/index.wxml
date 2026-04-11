@@ -90,7 +90,7 @@
     </view>
   </view>
 
-  <view wx:if="{{clips.length === 0}}" class="empty-state">
+  <view wx:if="{{clips.length === 0 && !loading}}" class="empty-state">
     <text>暂无收藏内容</text>
   </view>
 

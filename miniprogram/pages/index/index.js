@@ -45,7 +45,10 @@ Page({
 
   onShow() {
     this.initUserInfo();
-    this.loadData();
+    // 避免快速切换 tab 时重复加载数据
+    if (!this.data.loading) {
+      this.loadData();
+    }
   },
 
   // 初始化用户信息，转换头像URL
