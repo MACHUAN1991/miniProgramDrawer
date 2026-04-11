@@ -45,10 +45,9 @@ Page({
 
   onShow() {
     this.initUserInfo();
-    // 避免快速切换 tab 时重复加载数据
-    if (!this.data.loading) {
-      this.loadData();
-    }
+    // 避免快速切换 tab 或预览图片后重复加载数据
+    if (this.data.loading) return;
+    this.loadData();
   },
 
   // 初始化用户信息，转换头像URL
@@ -209,7 +208,7 @@ Page({
   },
 
   onReachBottom() {
-    if (this.data.loadingMore || !this.data.hasMore) return;
+    if (this.data.loading || this.data.loadingMore || !this.data.hasMore) return;
     this.loadMore();
   },
 
@@ -230,13 +229,17 @@ Page({
   },
 
   async loadData() {
+    if (this.data.loading) return;
+
     this.setData({ loading: true, page: 0, clips: [], hasMore: true });
 
-    // 先获取总数
-    await this.loadCounts();
-
-    const { data } = await this.fetchClips();
-    this.processAndSetData(data, true);
+    try {
+      await this.loadCounts();
+      const { data } = await this.fetchClips();
+      this.processAndSetData(data, true);
+    } catch (e) {
+      this.setData({ loading: false });
+    }
   },
 
   async loadCounts() {
