@@ -44,7 +44,7 @@
   </view>
 
   <!-- 每日推荐 -->
-  <view wx:if="{{dailyRecommend && !loading && !searchKey}}" class="daily-recommend" bindtap="onRecommendTap">
+  <view wx:if="{{dailyRecommend && !loading && !searchKey && selectedType === ''}}" class="daily-recommend" bindtap="onRecommendTap">
     <view class="daily-header">
       <text class="daily-title">📌 今日推荐</text>
     </view>
